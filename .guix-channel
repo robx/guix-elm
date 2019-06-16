@@ -1,0 +1,6 @@
+(channel
+  (version 0)
+  (dependencies
+   (channel
+    (name postgrest)
+    (url "https://github.com/robx/guix-postgrest.git"))))
