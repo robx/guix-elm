@@ -3,9 +3,14 @@
   #:use-module (ice-9 textual-ports)
   #:use-module (rnrs bytevectors)
   #:use-module (ice-9 match)
+  #:use-module (ice-9 popen)
   #:use-module (srfi srfi-26)
+  #:use-module (json parser)
 
-  #:export (put-packages))
+  #:export
+     (put-packages
+      get-dependencies
+      build-versions.dat))
 
 (define* (put-int64 port x)
   (let ((vec (make-bytevector 8)))
@@ -40,3 +45,33 @@
                       (and (string=? auth1 auth2)
                            (string<? proj1 proj2)))))))
   #t)
+
+(define* (parse-version v)
+  (map string->number (string-split v #\.)))
+
+(define* (get-dependencies elm.json)
+  (define* (add-dep name version deps)
+    (cons
+      (match (string-split name #\/)
+        ((author project) (list author project (parse-version version))))
+      deps))
+  (define deps (hash-ref elm.json "dependencies"))
+  (hash-fold
+    add-dep
+    (hash-fold add-dep '() (hash-ref deps "direct"))
+    (hash-ref deps "indirect")))
+
+(define* (build-versions.dat)
+  (format #t "building versions.dat in ~a~%" (getcwd))
+  (let ((packages (string-split
+                    (get-line (open-input-pipe "echo */*/*"))
+                    #\ )))
+    (format #t "packages: ~a~%" packages)
+    (put-packages
+      (open-output-file "versions.dat")
+      (map
+        (lambda (path)
+          (match (string-split path #\/)
+            ((author project version)
+             (list author project (parse-version version)))))
+        packages))))
