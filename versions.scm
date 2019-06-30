@@ -23,6 +23,7 @@
   (put-string port s))
 
 (define* (put-version port v)
+  ; there's a different encoding for very large versions
   (map (cut put-u8 port <>) v))
 
 (define* (put-package port pkg)
