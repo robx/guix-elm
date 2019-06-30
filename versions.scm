@@ -38,14 +38,13 @@
 (define* (put-packages port pkgs)
   (put-int64 port (length pkgs)) ; total number of versions
   (put-int64 port (length pkgs)) ; number of packages
-  (map
+  (for-each
     (cut put-package port <>) 
     (sort pkgs (match-lambda*
                  (((auth1 proj1 _) (auth2 proj2 _))
                   (or (string<? auth1 auth2)
                       (and (string=? auth1 auth2)
-                           (string<? proj1 proj2)))))))
-  #t)
+                           (string<? proj1 proj2))))))))
 
 (define* (parse-version v)
   (map string->number (string-split v #\.)))
