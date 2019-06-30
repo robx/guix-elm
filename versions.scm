@@ -65,13 +65,15 @@
   (format #t "building versions.dat in ~a~%" (getcwd))
   (let ((packages (string-split
                     (get-line (open-input-pipe "echo */*/*"))
-                    #\ )))
+                    #\ ))
+        (out (open-output-file "versions.dat")))
     (format #t "packages: ~a~%" packages)
     (put-packages
-      (open-output-file "versions.dat")
+      out
       (map
         (lambda (path)
           (match (string-split path #\/)
             ((author project version)
              (list author project (parse-version version)))))
-        packages))))
+        packages))
+    (close out)))
